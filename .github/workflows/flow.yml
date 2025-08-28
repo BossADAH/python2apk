@@ -1,0 +1,60 @@
+name: Build Kivy APK
+
+on:
+  workflow_dispatch:   # lets you trigger the build manually from GitHub UI
+  push:
+    branches:
+      - main           # or your default branch
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      # 1. Checkout your repo
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Install dependencies
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            python3-pip python3-setuptools python3-wheel python3-venv \
+            openjdk-17-jdk unzip zip \
+            git build-essential libssl-dev libffi-dev \
+            libsqlite3-dev zlib1g-dev
+
+      # 3. Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      # 4. Install Buildozer + Cython
+      - name: Install Buildozer
+        run: |
+          pip install --upgrade pip
+          pip install cython
+          pip install buildozer
+
+      # 5. Cache Android SDK/NDK (so builds are faster)
+      - name: Cache .buildozer
+        uses: actions/cache@v3
+        with:
+          path: .buildozer
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
+
+      # 6. Run Buildozer
+      - name: Build APK
+        run: |
+          buildozer android debug
+
+      # 7. Upload APK as artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: kivy-apk
+          path: bin/*.apk
