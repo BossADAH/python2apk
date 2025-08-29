@@ -53,7 +53,7 @@ android.minapi = 21
 
 # (str) Android SDK/NDK versions
 android.sdk = 20
-android.ndk = 19b
+android.ndk = 25b
 
 # (str) Android entry point, don’t touch
 entrypoint = org.kivy.android.PythonActivity
