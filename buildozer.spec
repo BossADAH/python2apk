@@ -30,7 +30,7 @@ fullscreen = 0
 orientation = portrait
 
 # (bool) Indicate if the application should be fullscreen or not
-fullscreen = 0
+#fullscreen = 0
 
 # (list) Permissions your app might need
 android.permissions = INTERNET
