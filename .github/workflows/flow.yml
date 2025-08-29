@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # Switch to ubuntu-22.04 for better compatibility
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
@@ -44,18 +44,41 @@ jobs:
             ${{ runner.os }}-buildozer-
 
       - name: Initialize Buildozer
+        env:
+          APP_ANDROID_ACCEPT_SDK_LICENSE: 1
         run: |
-          buildozer android debug --verbose  # Run once to ensure SDK/NDK setup
-        continue-on-error: true  # Allow continuation even if SDK setup fails partially
+          buildozer -v android debug
+        continue-on-error: true
+
+      - name: Accept Android SDK licenses
+        run: |
+          SDKMANAGER_PATH="$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -f "$SDKMANAGER_PATH" ]; then
+            SDKMANAGER_PATH="$HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager"
+          fi
+          if [ -f "$SDKMANAGER_PATH" ]; then
+            yes | $SDKMANAGER_PATH --sdk_root=$HOME/.buildozer/android/platform/android-sdk --licenses
+          else
+            echo "sdkmanager not found, running Buildozer to initialize"
+            buildozer -v android debug
+            yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk --licenses
+          fi
+        env:
+          APP_ANDROID_ACCEPT_SDK_LICENSE: 1
 
       - name: Install Android SDK build-tools
         run: |
-          if [ -f "$HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager" ]; then
-            yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager "build-tools;33.0.0"
-          else
-            echo "sdkmanager not found, ensuring Buildozer initializes SDK"
-            buildozer android debug --verbose
+          SDKMANAGER_PATH="$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -f "$SDKMANAGER_PATH" ]; then
+            SDKMANAGER_PATH="$HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager"
           fi
+          if [ -f "$SDKMANAGER_PATH" ]; then
+            yes | $SDKMANAGER_PATH --sdk_root=$HOME/.buildozer/android/platform/android-sdk "build-tools;33.0.0"
+          else
+            echo "sdkmanager not found, relying on Buildozer to install build tools"
+          fi
+        env:
+          APP_ANDROID_ACCEPT_SDK_LICENSE: 1
 
       - name: Build APK
         env:
