@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04  # Switch to ubuntu-22.04 for better compatibility
 
     steps:
       - name: Checkout repository
@@ -35,10 +35,6 @@ jobs:
           pip install cython==0.29.33
           pip install buildozer
 
-      - name: Install Android SDK tools
-        run: |
-          yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager "build-tools;33.0.0"
-
       - name: Cache .buildozer
         uses: actions/cache@v4
         with:
@@ -46,6 +42,20 @@ jobs:
           key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-buildozer-
+
+      - name: Initialize Buildozer
+        run: |
+          buildozer android debug --verbose  # Run once to ensure SDK/NDK setup
+        continue-on-error: true  # Allow continuation even if SDK setup fails partially
+
+      - name: Install Android SDK build-tools
+        run: |
+          if [ -f "$HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager" ]; then
+            yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager "build-tools;33.0.0"
+          else
+            echo "sdkmanager not found, ensuring Buildozer initializes SDK"
+            buildozer android debug --verbose
+          fi
 
       - name: Build APK
         env:
