@@ -36,10 +36,10 @@ orientation = portrait
 android.permissions = INTERNET
 
 # (str) Application icon (put your .png in the project root and name it icon.png)
-icon.filename = %(source.dir)s/icon.png
+#icon.filename = %(source.dir)s/icon.png
 
 # (str) Presplash screen (optional)
-presplash.filename = %(source.dir)s/presplash.png
+#presplash.filename = %(source.dir)s/presplash.png
 
 # (list) Presplash background color (R,G,B) between 0-1
 # Example: 1,1,1 for white
